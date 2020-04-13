@@ -19,8 +19,8 @@ def initialize_train_data(file_path):
 
     with open(file_path) as f:
         reader = f.read()
-
-        for row in reader.split('\r\n'):
+        reader = reader.replace("\r", "")
+        for row in reader.split('\n'):
             sentence = str(row).split(' ')
             sent_list = []
 
@@ -43,7 +43,10 @@ def initialize_reference(file_path):
 
     with open(file_path) as f:
         reader = f.read()
-        reference = reader.split('\r\n')
+        reader = reader.replace("\r", "")
+        reference = reader.split('\n')
+
+        print(reference)
 
     return reference
 
@@ -80,7 +83,6 @@ def find_index(word_pair, X, Y):
 def update_matrix(mat, j, k):
 
     mat_new = copy.deepcopy(mat)
-    print(mat.shape)
     if (j == -1):
         mat_new[k] = mat_new[k] + 1
     else:
@@ -110,8 +112,8 @@ def normalize_matrix(mat):
 
     norm_mat = copy.deepcopy(mat)
 
-    for row in norm_mat:
-        row = normalize_row(row)
+    for i in range(0, len(norm_mat)):
+        norm_mat[i] = normalize_row(norm_mat[i])
 
     return norm_mat
 
@@ -129,6 +131,20 @@ character
 @param[in] file - file to print to
 """
 def print_matrix(mat, outfile):
+
+    f = open(outfile, "w")
+
+    for row in mat:
+        if type(row) == np.float64:
+            f.write("%.18E" % (row))
+        else:
+            for i in range(0, len(row)):
+                if (i == len(row) - 1):
+                    f.write("%.18E" % (row[i]))
+                else:
+                    f.write("%.18E " % (row[i]))
+        f.write("\n")
+    
     return
 """ ---------------------------------------------------------------------------
                             Main Run Routines
@@ -151,7 +167,6 @@ def initialize(data):
     G = len(data.tag_ref) #Number of possible tags
     M = len(data.word_ref) #Number of possible words
 
-    print(G, M)
     #initialize with a +1 pseudocount
     data.prior_mat = np.ones((G, 1))
     data.trans_mat = np.ones((G, G))
@@ -178,28 +193,19 @@ def learn_parameters(data):
 
             cur_x, cur_y = find_index(word_pair, data.word_ref, data.tag_ref)
 
-            print(word_pair, cur_x, cur_y)
-
             if (i == 0):
                 data.prior_mat = update_matrix(data.prior_mat, -1, cur_y)
             else:
                 data.trans_mat = update_matrix(data.trans_mat, prev_y, cur_y)
-                data.emit_mat = update_matrix(data.emit_mat, prev_y, cur_x)
-
+            
+            data.emit_mat = update_matrix(data.emit_mat, cur_y, cur_x)
             prev_y = cur_y
     
+    print(data.emit_mat)
     data.prior_mat = normalize_row(data.prior_mat)
     data.emit_mat = normalize_matrix(data.emit_mat)
     data.trans_mat = normalize_matrix(data.trans_mat)
-
-    print(data.prior_mat)
     return
-
-    #initialize sentence, iterator vals
-    #emm_mat,trans_mat,prior_mat given by data object
-
-    # run loop through sentence
-    #loop through sentence, based on index
 
 """
 @brief Prints paramter matrices to given output files
@@ -208,6 +214,9 @@ def learn_parameters(data):
 """
 def print_output(data):
 
+    print_matrix(data.prior_mat, data.prior_outpath)
+    print_matrix(data.emit_mat, data.emit_outpath)
+    print_matrix(data.trans_mat, data.trans_outpath)
 
     return
     #print emm_mat,trans_mat,prior_mat to corresponding systems
