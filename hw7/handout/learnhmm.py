@@ -44,7 +44,7 @@ def initialize_reference(file_path):
     with open(file_path) as f:
         reader = f.read()
         reference = reader.split('\r\n')
-        
+
     return reference
 
 """ ---------------------------------------------------------------------------
@@ -58,13 +58,12 @@ def initialize_reference(file_path):
 """
 def find_index(word_pair, X, Y):
 
-    #x, y = word_pair
+    x, y = word_pair
 
-    #x_i = numpy.argwhere(X)
-    #y_i = numpy.argwhere(Y)
+    x_i = X.index(x)
+    y_i = Y.index(y)
 
-    #return x_i, y_
-    return
+    return x_i, y_i
 
 """ ---------------------------------------------------------------------------
                             Parameter Updates
@@ -76,9 +75,19 @@ def find_index(word_pair, X, Y):
 @param[in] mat - prior matrix
 @param[in] j - row index of update cell
 @param[in] k - column index of update cell
+@return mat_new - updated matrix
 """
 def update_matrix(mat, j, k):
-    return
+
+    mat_new = copy.deepcopy(mat)
+    print(mat.shape)
+    if (j == -1):
+        mat_new[k] = mat_new[k] + 1
+    else:
+        mat_new[j][k] = mat_new[j][k] + 1
+
+    return mat_new
+
 """ ---------------------------------------------------------------------------
                             Matrix Normalization
 --------------------------------------------------------------------------- """
@@ -86,10 +95,10 @@ def update_matrix(mat, j, k):
 @brief: Given a row vector, normalizes values in row
 
 @param[in] row
-@param[out] normalized row
+@param[out] norm_row normalized row
 """
 def normalize_row(row):
-    return
+    return row / np.sum(row)
 
 """
 @brief: Given a matrix, normalizes value across each row
@@ -98,7 +107,14 @@ def normalize_row(row):
 @param[out] normalized matrix
 """
 def normalize_matrix(mat):
-    return
+
+    norm_mat = copy.deepcopy(mat)
+
+    for row in norm_mat:
+        row = normalize_row(row)
+
+    return norm_mat
+
 """ ---------------------------------------------------------------------------
                             Printing Helpers
 --------------------------------------------------------------------------- """
@@ -132,16 +148,14 @@ def initialize(data):
     data.word_ref = initialize_reference(data.word_to_index_path)
     data.tag_ref = initialize_reference(data.tag_to_index_path)
 
-    # train_data: read in train data
-    # X = read in word to index data
-    # Y = read in tag to index data
+    G = len(data.tag_ref) #Number of possible tags
+    M = len(data.word_ref) #Number of possible words
 
-    # find G dimension
-    #find M dimesnions
-
-    # set up prior matrix (1XG)
-    # set up transition matrix (GXG)
-    # set up emmision matrix (G X M)
+    print(G, M)
+    #initialize with a +1 pseudocount
+    data.prior_mat = np.ones((G, 1))
+    data.trans_mat = np.ones((G, G))
+    data.emit_mat = np.ones((G, M))
 
 """
 @brief: Main program routine to learn HMM parameters
@@ -153,6 +167,32 @@ matrices
 @param[in] data - object containing all elements
 """
 def learn_parameters(data):
+
+    cur_x = ""
+    cur_y = ""
+    prev_y = ""
+
+    for sentence in data.train_data:
+        for i in range(0, len(sentence)):
+            word_pair = sentence[i]
+
+            cur_x, cur_y = find_index(word_pair, data.word_ref, data.tag_ref)
+
+            print(word_pair, cur_x, cur_y)
+
+            if (i == 0):
+                data.prior_mat = update_matrix(data.prior_mat, -1, cur_y)
+            else:
+                data.trans_mat = update_matrix(data.trans_mat, prev_y, cur_y)
+                data.emit_mat = update_matrix(data.emit_mat, prev_y, cur_x)
+
+            prev_y = cur_y
+    
+    data.prior_mat = normalize_row(data.prior_mat)
+    data.emit_mat = normalize_matrix(data.emit_mat)
+    data.trans_mat = normalize_matrix(data.trans_mat)
+
+    print(data.prior_mat)
     return
 
     #initialize sentence, iterator vals
@@ -167,6 +207,8 @@ def learn_parameters(data):
 @param[in] data - object containing matrices and output paths
 """
 def print_output(data):
+
+
     return
     #print emm_mat,trans_mat,prior_mat to corresponding systems
 
