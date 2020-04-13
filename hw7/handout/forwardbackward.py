@@ -134,7 +134,17 @@ def forward(alpha, sentence, emit_mat, trans_mat, prior_mat, word_ref):
 @return beta - generated beta matrix
 """
 def backward(beta, sentence, emit_mat, trans_mat, word_ref):
-    return
+    T = len(sentence)
+
+    m = value_to_index(sentence[T-1][0], word_ref)
+    beta[T-1] = 1
+
+    for t in range(T-2, -1, -1):
+        m = value_to_index(sentence[t][0], word_ref)
+        beta[t] = np.multiply(beta[t+1], emit_mat[m])
+        beta[t] = np.matmul(beta[t], trans_mat)
+    
+    return beta
 """ ---------------------------------------------------------------------------
                         Log-Likelihood Calculations
 --------------------------------------------------------------------------- """
@@ -231,9 +241,9 @@ def run_forward_backward_alg(data):
         beta = np.zeros((T,data.G))
 
         alpha = forward(alpha, sentence, data.emit_mat, data.trans_mat, data.prior_mat, data.word_ref)
-    #     beta = backward(beta, sentence, data.emit_mat, data.trans_mat, data.word_ref)
+        beta = backward(beta, sentence, data.emit_mat, data.trans_mat, data.word_ref)
 
-    #     prob_mat = np.multiply(alpha, beta) #multiply elementwise
+        prob_mat = np.multiply(alpha, beta) #multiply elementwise
     #     total_log_likelihood += log_likelihood(alpha[T-1])
 
     #     pred = predict(prob_mat, data.tag_ref)
