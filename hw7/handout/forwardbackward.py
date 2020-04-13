@@ -1,4 +1,65 @@
+import csv
+import numpy as np
+import math
+import sys
+import copy
 
+""" ---------------------------------------------------------------------------
+                     Initialize Data to Read In
+--------------------------------------------------------------------------- """
+""" 
+@brief Reads in test data and creates the corresponding matrix object
+
+@param[in] file_path - path to read data from
+@return data - matrix of data
+"""
+def initialize_train_data(file_path):
+    data = []
+    sentence = []
+
+    with open(file_path) as f:
+        reader = f.read()
+        reader = reader.replace("\r", "")
+        for row in reader.split('\n'):
+            sentence = str(row).split(' ')
+            sent_list = []
+
+            for word in sentence:
+                elems = word.split("_")
+                sent_list.append(elems)
+
+            data.append(sent_list)
+
+    return data
+
+""" 
+@brief Reads in word/tag reference list into correpsonding matrix object
+
+@param[in] file_path - path to read from
+@return reference - matrix of values
+"""
+def initialize_reference(file_path):
+    reference = []
+
+    with open(file_path) as f:
+        reader = f.read()
+        reader = reader.replace("\r", "")
+        reference = reader.split('\n')
+
+        print(reference)
+
+    return reference
+
+""" 
+@brief Reads in probability matrix into correpsonding numpy object
+
+@param[in] file_path - path to read from
+@return reference - matrix of values
+"""
+def initialize_prob_matrix(file_path):
+    mat = np.loadtxt(file_path, delimiter = " ")
+    
+    return mat
 """ ---------------------------------------------------------------------------
                             Helper Functions
 --------------------------------------------------------------------------- """
@@ -12,7 +73,8 @@ Counts how many predicted tag values in sentence match the actual tags
 @param[in] sentence - list of actual word,tag tuples
 @return count - the number of correct predictions
 """
-def num_correct(pred, sentence)
+def num_correct(pred, sentence):
+    return
 
 """
 @brief: Determines matrix index of given word/tag
@@ -21,7 +83,8 @@ def num_correct(pred, sentence)
 @parm[in] reference - reference with words/tags and indexes
 @returns index of word/tag in reference
 """
-def value_to_tag(value, reference)
+def value_to_tag(value, reference):
+    return
 
 """
 @brief: Determines word/tag value of given matrix index
@@ -30,7 +93,8 @@ def value_to_tag(value, reference)
 @parm[in] reference - reference with words/tags and indexes
 @returns word/tag at index in reference
 """
-def tag_to_value(value, reference)
+def tag_to_value(value, reference):
+    return
 
 """ ---------------------------------------------------------------------------
                         Forward/Backward Routines
@@ -44,7 +108,8 @@ def tag_to_value(value, reference)
 @param[in] prior_mat - prior matrix
 @return alpha - generated alpha matrix
 """
-def forward(sentence, emm_mat, trans_mat, prior_mat)
+def forward(sentence, emm_mat, trans_mat, prior_mat):
+    return
 
 """
 @brief: Runs backward routines for HMM
@@ -54,7 +119,8 @@ def forward(sentence, emm_mat, trans_mat, prior_mat)
 @param[in] trans_mat - transition matrix
 @return beta - generated beta matrix
 """
-def backward(sentence, emm_mat, trans_mat)
+def backward(sentence, emm_mat, trans_mat):
+    return
 """ ---------------------------------------------------------------------------
                         Log-Likelihood Calculations
 --------------------------------------------------------------------------- """
@@ -68,7 +134,8 @@ lawst word in each set.
 @param[in] max_alphas - alpha values associated with last word of each sentence
 @return l - calculated log-likelihood
 """
-def log_likelihood(max_alphas)
+def log_likelihood(max_alphas):
+    return
 """ ---------------------------------------------------------------------------
                         Prediction Routines
 --------------------------------------------------------------------------- """
@@ -81,7 +148,8 @@ Takes tag with highest lieklihood
 @param[in] tag_ref - matrix of tag index references
 @return pred - predicted values
 """
-def predict(prob_mat, tag_ref)
+def predict(prob_mat, tag_ref):
+    return
 
 """ ---------------------------------------------------------------------------
                             Print Routines
@@ -94,7 +162,8 @@ def predict(prob_mat, tag_ref)
 @param[in] sentence - list of actual word,tag tuples
 @param[in] outfile - file to write to
 """
-def write_pred(pred, sentence, outfile)
+def write_pred(pred, sentence, outfile):
+    return
 
 """
 @brief: Writes average log-likelyhood and error rate to given output file
@@ -103,7 +172,8 @@ def write_pred(pred, sentence, outfile)
 @param[in] error - error rate
 @param[in] outfile - file to write to
 """
-def write_metrics(avg_likelihood, error, outfile)
+def write_metrics(avg_likelihood, error, outfile):
+    return
 
 """ ---------------------------------------------------------------------------
                             Main Run Routines
@@ -119,6 +189,13 @@ emission matrix from inputed files
 """
 def initialize(data):
 
+    data.test_data = initialize_train_data(data.test_inpath)
+    data.word_ref = initialize_reference(data.word_to_index_inpath)
+    data.tag_ref = initialize_reference(data.tag_to_index_inpath)
+
+    data.prior_mat = initialize_prob_matrix(data.prior_inpath)
+    data.emit_mat = initialize_prob_matrix(data.emit_inpath)
+    data.trans_mat = initialize_prob_matrix(data.trans_inpath)
 # Read in A, B, pi
 # Read in X, Y, test data
 
@@ -128,6 +205,7 @@ def initialize(data):
 @param[in] data - object containing all elements
 """
 def run_forward_backward_alg(data):
+    return
 
 """ ---------------------------------------------------------------------------
                                     Main
@@ -139,9 +217,21 @@ def run_forward_backward_alg(data):
 Intializes data, learns parameters and prints them to
 output files given by command line
 """
-def main():
+def main(data):
+    initialize(data)
+    run_forward_backward_alg(data)
 
-    //create data struct
+if __name__ == "__main__":
+    class Struct(object): pass
+    data = Struct()
 
-    #initialize values from cmd line
-    #initialize in struct 
+    data.test_inpath = sys.argv[1]
+    data.word_to_index_inpath = sys.argv[2]
+    data.tag_to_index_inpath = sys.argv[3]
+    data.prior_inpath = sys.argv[4]
+    data.emit_inpath = sys.argv[5]
+    data.trans_inpath = sys.argv[6]
+    data.predictions_outpath = sys.argv[7]
+    data.metrics_outpath = sys.argv[8]
+
+    main(data)
